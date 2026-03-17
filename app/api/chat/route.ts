@@ -6,8 +6,8 @@ import { ChatMessage } from '@/lib/types';
 
 initDatabase();
 
-// Get recent chat messages (last 50)
-export async function GET() {
+// Get recent chat messages (with pagination support)
+export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
     const session = await getSession(cookieStore);
@@ -16,13 +16,32 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const messages = db.prepare(
-      `SELECT cm.*, u.username, u.display_name
-       FROM chat_messages cm
-       JOIN users u ON cm.user_id = u.id
-       ORDER BY cm.sent_at DESC
-       LIMIT 50`
-    ).all() as (ChatMessage & { username: string; display_name: string })[];
+    // Get pagination params from query string
+    const url = new URL(request.url);
+    const beforeId = url.searchParams.get('before');
+    const limit = parseInt(url.searchParams.get('limit') || '100');
+
+    let messages;
+    if (beforeId) {
+      // Get messages before a specific ID (for loading older messages)
+      messages = db.prepare(
+        `SELECT cm.*, u.username, u.display_name
+         FROM chat_messages cm
+         JOIN users u ON cm.user_id = u.id
+         WHERE cm.id < ?
+         ORDER BY cm.sent_at DESC
+         LIMIT ?`
+      ).all(parseInt(beforeId), limit) as (ChatMessage & { username: string; display_name: string })[];
+    } else {
+      // Get most recent messages (default behavior)
+      messages = db.prepare(
+        `SELECT cm.*, u.username, u.display_name
+         FROM chat_messages cm
+         JOIN users u ON cm.user_id = u.id
+         ORDER BY cm.sent_at DESC
+         LIMIT ?`
+      ).all(limit) as (ChatMessage & { username: string; display_name: string })[];
+    }
 
     // Reverse to get oldest first
     const orderedMessages = messages.reverse();
