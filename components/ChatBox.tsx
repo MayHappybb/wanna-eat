@@ -90,7 +90,16 @@ export default function ChatBox({ currentUser }: ChatBoxProps) {
   }
 
   function formatTime(dateString: string) {
-    return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Handle SQLite datetime format (YYYY-MM-DD HH:MM:SS) which is in UTC
+    // by appending 'Z' to treat it as UTC, then convert to local time
+    let date: Date;
+    if (dateString.includes(' ') && !dateString.includes('T') && !dateString.endsWith('Z')) {
+      // SQLite format: treat as UTC by adding Z
+      date = new Date(dateString.replace(' ', 'T') + 'Z');
+    } else {
+      date = new Date(dateString);
+    }
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
   return (

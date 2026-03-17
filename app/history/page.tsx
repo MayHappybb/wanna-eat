@@ -41,7 +41,7 @@ export default function HistoryPage() {
       const res = await fetch('/api/users');
       if (res.ok) {
         const data = await res.json();
-        setAllUsers(data.map((u: { id: number; display_name: string }) => ({ id: u.id, display_name: u.display_name })));
+        setAllUsers(data.users.map((u: { id: number; display_name: string }) => ({ id: u.id, display_name: u.display_name })));
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -81,8 +81,16 @@ export default function HistoryPage() {
     );
   }
 
+  function parseDate(dateString: string): Date {
+    // Handle SQLite datetime format (YYYY-MM-DD HH:MM:SS) which is in UTC
+    if (dateString.includes(' ') && !dateString.includes('T') && !dateString.endsWith('Z')) {
+      return new Date(dateString.replace(' ', 'T') + 'Z');
+    }
+    return new Date(dateString);
+  }
+
   function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return parseDate(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -90,7 +98,7 @@ export default function HistoryPage() {
   }
 
   function formatTime(dateString: string) {
-    return new Date(dateString).toLocaleTimeString('en-US', {
+    return parseDate(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
     });
