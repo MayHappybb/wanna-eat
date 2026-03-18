@@ -93,10 +93,10 @@ export async function POST(request: Request) {
       ).run(recordId, participantId);
     }
 
-    // Reset all users' "wanna eat" status to "Not hungry"
+    // Reset all users' "wanna eat" status to "Not hungry" (keep location and note)
     db.prepare(
       `UPDATE user_statuses
-       SET willing_to_eat = 0, location = NULL, note = NULL, updated_at = CURRENT_TIMESTAMP`
+       SET willing_to_eat = 0, updated_at = CURRENT_TIMESTAMP`
     ).run();
 
     const record = db.prepare('SELECT * FROM eating_records WHERE id = ?').get(recordId);
