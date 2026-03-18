@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Utensils, LogOut, User, History } from 'lucide-react';
+import { Utensils, LogOut, User, History, Settings } from 'lucide-react';
 
 export default function Navbar() {
   const router = useRouter();
@@ -31,6 +31,14 @@ export default function Navbar() {
             >
               <History className="h-5 w-5" />
               <span className="hidden sm:inline">History</span>
+            </Link>
+
+            <Link
+              href="/settings"
+              className="flex items-center space-x-1 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            >
+              <Settings className="h-5 w-5" />
+              <span className="hidden sm:inline">Settings</span>
             </Link>
 
             <button
